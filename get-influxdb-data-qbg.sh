@@ -41,11 +41,11 @@ typeset -r INFLUXDB_DB_DFLT="thermosense"
 typeset -r INFLUXDB_SERIES_DFLT="compost"
 typeset -r INFLUXDB_USER_DFLT="ezra"
 typeset -r INFLUXDB_QUERY_VARS_DFLT='mean("tWater")*9/5+32 as "tWater"'
-typeset -r INFLUXDB_QUERY_WHERE_DFLT='"deviceid" = '\''device-02-6d'\'' AND time > now() -1d'
+typeset -r INFLUXDB_QUERY_WHERE_DFLT='"deviceid" = '\''device-02-6a'\'' AND time > now() -1d'
 typeset -r INFLUXDB_QUERY_GROUP_DFLT='time(1ms)'
 typeset -r INFLUXDB_QUERY_FILL_DFLT="none"
 typeset -r TIMEZONE_DFLT='tz('\''America/New_York'\'')'
-typeset -r PROBE_NAME_DFLT="device-02-6d"
+typeset -r PROBE_NAME_DFLT="device-02-6a"
 typeset -i DAYS_DFLT=1
 
 #### argument scanning:  usage ####
