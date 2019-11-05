@@ -37,6 +37,6 @@ To get water temperature, pressure and battery data for sensor probe 5a for the 
 Note: 'sh get-influxdb-data-qbg.sh ....' for MAC bash
 
 ### python command to convert json file to csv file
-$ python3 json-to-csv-qbg.py data.json data.csv
+    $ python3 json-to-csv-qbg.py data.json data.csv
 
 Note: You can just use python instead of python3 as well
