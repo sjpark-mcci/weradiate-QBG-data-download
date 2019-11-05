@@ -104,29 +104,26 @@ Positional arguments:
 	No positional arguments are availalbe.
 
 Examples:
-	To fetch the last 36 days as user somebody from default source and
+	To fetch the last 36 days from default source and
 	series, do the following. (The -v option causes the script to display
 	the curl command.)
 
-	\$ $OPTPNAME -u somebody -v -t36 > /tmp/data.json
-	get-influxdb-data.sh: curl -G --basic --user somebody https://ithaca-power.mcci.com/influxdb:8086/query?pretty=true --data-urlencode db=iseechange-01 --data-urlencode q=SELECT mean("t") as "t",mean("rh") as "rh",mean("tDew") as "tDew",mean("tHeatData") as "tHeatIndex",mean("p") as "p",mean("vBat") as "vBat" from "HeatData" where time > now() - 36d GROUP BY time(1ms), "displayName" fill(none)
-	Enter host password for user 'somebody':
-	  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+	\$ $OPTPNAME -v -t36 > data.json
+	get-influxdb-data-qbg.sh: curl -G --basic --user ezra https://analytics.weradiate.com/influxdb:8086/query?pretty=true --data-urlencode db=thermosense --data-urlencode q=SELECT mean("tWater")*9/5+32 as "tWater" from "compost" where "deviceid" = 'device-02-6a' AND time > now() - 36d GROUP BY time(1ms) fill(none) tz('America/New_York')
+	Enter host password for user 'ezra':
+  	% Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
 	                                 Dload  Upload   Total   Spent    Left  Speed
-	100   469  100   469    0     0   1486      0 --:--:-- --:--:-- --:--:--  1488
+	100 29977    0 29977    0     0  92236      0 --:--:-- --:--:-- --:--:-- 93096
 	\$
 
-	To get all the data for sensor holt-46, between 2018-01-01 and
-	2019-01-01 (note use of UTC and quoting of queries):
+	To get water temperature, pressure and battery data for sensor probe 5a for the last 7 days:
 
-	\$ $OPTPNAME -u somebody -d ithaca-power -s ithaca-power \\
-	    -q 'mean("powerUsed") * 2.5 as "powerUsed"' \\
-	    -w '("devID" = '\''holt-46'\'') AND time >= '\''2018-01-01T04:00:00Z'\'' AND time < '\''2019-01-01T04:00:00Z'\' \\
-	    -g 'time(1ms), "devID"' > /tmp/data.json -v
-	get-influxdb-data.sh: curl -G --basic --user somebody https://ithaca-power.mcci.com/influxdb:8086/query?pretty=true --data-urlencode db=ithaca-power --data-urlencode q=SELECT mean("powerUsed") * 2.5 as "powerUsed" from "ithaca-power" where ("devID" = 'holt-46') AND time >= '2018-01-01T04:00:00Z' AND time < '2019-01-01T04:00:00Z' GROUP BY time(1ms), "devID" fill(none)
+	\$ $OPTPNAME -q 'mean("tWater")*9/5+32 as "tWater",mean("p") as "p",mean("vBat") as "vBat"' -r 5a -v -t7 > data.json
+	get-influxdb-data-qbg.sh: curl -G --basic --user ezra https://analytics.weradiate.com/influxdb:8086/query?pretty=true --data-urlencode db=thermosense --data-urlencode q=SELECT mean("tWater")*9/5+32 as "tWater",mean("p") as "p",mean("vBat") as "vBat" from "compost" where "deviceid" = 'device-02-6e' AND time > now() - 7d GROUP BY time(1ms) fill(none) tz('America/New_York')
+	Enter host password for user 'ezra':
 	  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
 	                                 Dload  Upload   Total   Spent    Left  Speed
-	100 10.0M    0 10.0M    0     0  1341k      0 --:--:--  0:00:07 --:--:-- 1762k
+	100  6509    0  6509    0     0  47166      0 --:--:-- --:--:-- --:--:-- 47510
 	\$
 .
 }
@@ -243,7 +240,14 @@ else
 	QUERY_FILL_STRING=
 fi
 
-typeset QUERY_STRING='SELECT '"${QUERY_VAR_STRING}"' from "'"${INFLUXDB_SERIES}"'" where '"${INFLUXDB_QUERY_WHERE}"' GROUP BY '"${INFLUXDB_QUERY_GROUP}${QUERY_FILL_STRING}"' '"${TIMEZONE}" || _fatal "_expandquery failed"
+typeset QUERY_GROUP_STRING
+if [[ "$INFLUXDB_QUERY_GROUP" != "-" ]]; then
+	QUERY_GROUP_STRING=" GROUP BY $INFLUXDB_QUERY_GROUP"
+else
+	QUERY_GROUP_STRING=
+fi
+
+typeset QUERY_STRING='SELECT '"${QUERY_VAR_STRING}"' from "'"${INFLUXDB_SERIES}"'" where '"${INFLUXDB_QUERY_WHERE}""${QUERY_GROUP_STRING}${QUERY_FILL_STRING}"' '"${TIMEZONE}" || _fatal "_expandquery failed"
 #typeset QUERY_STRING='SELECT '"${QUERY_VAR_STRING}"' from "'"${INFLUXDB_SERIES}"'" where '"${INFLUXDB_QUERY_WHERE}"' '"${TIMEZONE}" || _fatal "_expandquery failed"
 _verbose curl -G --basic --user "${INFLUXDB_USER}" \
 	"https://${INFLUXDB_SERVER}/influxdb:8086/query?${INFLUXDB_OPTPRETTY}" \
