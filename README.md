@@ -7,7 +7,7 @@ There are mainly two parts:
 Please get the raw data first then use python file to convert the json file to csv file.
 
 For the basic option for getting raw data,
-'-r [probe]' for selecting probe(default is 1a) and 't [days]' for number of days from today.
+'-r [probe]' for selecting probe(default is 1a) and '-t [days]' for number of days from today.
 
 Probe options are: 1a, 3a, 5a, 1b, 3b, 5b
 ## Example commands
