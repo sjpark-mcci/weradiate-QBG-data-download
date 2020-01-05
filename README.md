@@ -1,42 +1,69 @@
 # Data download from InfluxDB and file conversion for WeRadiate
 
-There are mainly two parts:
-1. raw data download as json file (get-influxdb-data-qbg.sh)
-2. convert json file to csv file (json-to-csv-qbg.py)
+### Software Requirement
+- Ubuntu(For PC) - you can follow the installation instruction from here: https://tutorials.ubuntu.com/tutorial/tutorial-ubuntu-on-windows#0
+- Python - you can download from here: https://www.python.org/downloads/
+### Instruction
+1. Download or clone this repository to desired directory
+2. Launch Ubuntu terminal from PC(refer to the above link) or Terminal from Mac.
+	- To open terminal from Mac, either open your Applications folder, then open Utilities and double-click on Terminal, or press Command - spacebar to launch Spotlight and type "Terminal," then double-click the search result.
+3. In the terminal, go to the directory where you downloaded(if you downloaded as a zip file, it needs to be extracted in the same folder) or cloned this repository
+- For example, if the repository is cloned under `c:/client/windsor/sandbox/weradiate-QBG-data-download`,
+```
+sjpark@sjpark-note2:~$ cd /mnt/c/client/windsor/sandbox/weradiate-QBG-data-download
+sjpark@sjpark-note2:/mnt/c/client/windsor/sandbox/weradiate-QBG-data-download$ ls
+QBG-Data.csv  data-qbg-test.json  data.csv   data3.csv   get-influxdb-data-qbg.sh  qbg-data-test.csv   qbgdata.csv
+README.md     data-qbg.json       data.json  data3.json  json-to-csv-qbg.py        qbg-data-test2.csv  qbgrawdata.json
+sjpark@sjpark-note2:/mnt/c/client/windsor/sandbox/weradiate-QBG-data-download$
+```
+4. Download raw data as a json file from InfluxDB using `get-influxdb-data-qbg.sh`
+- Basic option for getting raw data,
+	- '-r [probe]' for selecting probe(default is 1a)
+		- Probe options: 1a, 3a, 5a, 1b, 3b, 5b
+	- '-t [days]' for number of days from today.
+- Syntax 
+	- PC: `./get-influxdb-data-qbg.sh -r [probe] -t [days] > [output file name].json`
+	- Mac: `sh get-influxdb-data-qbg.sh -r [probe] -t [days] > [output file name].json`
+- Example 1: get the last 5 days of data from probe 1a
 
-Please get the raw data first then use python file to convert the json file to csv file.
+\
+PC
+```
+$ ./get-influxdb-data-qbg.sh -r 1a -t 5 > rawdata-1a.json
+Enter host password for user 'ezra':
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+100    77    0    77    0     0    167      0 --:--:-- --:--:-- --:--:--   168
+```
 
-For the basic option for getting raw data,
-'-r [probe]' for selecting probe(default is 1a) and '-t [days]' for number of days from today.
+Mac
+```
+$ sh get-influxdb-data-qbg.sh -r 1a -t 5 > rawdata-1a.json
+Enter host password for user 'ezra':
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+100    77    0    77    0     0    167      0 --:--:-- --:--:-- --:--:--   168
+```
 
-Probe options are: 1a, 3a, 5a, 1b, 3b, 5b
-## Example commands
+You will need to enter proper password to get the data. Also, for this example, this will create `rawdata-1a.json` file in the same directory
 
-### shell scrip to download raw data in json form
+5. Convert a .json raw data file to a csv file using `json-to-csv-qbg.py`
+- Syntax 
+	- PC: `python3 json-to-csv-qbg.py [input file].json [output file].csv`
+	- Mac: `python json-to-csv-qbg.py [input file].json [output file].csv`
 
-To fetch the last 36 days from default source and
-	series, do the following. (The -v option causes the script to display
-	the curl command.)
+	`[input file].json` is the json file that has been created in the previous step.
+- Example 1: get the last 5 days of data from probe 1a
 
-	$ get-influxdb-data-qbg.sh -v -t36 > data.json
-	get-influxdb-data-qbg.sh: curl -G --basic --user ezra https://analytics.weradiate.com/influxdb:8086/query?pretty=true --data-urlencode db=thermosense --data-urlencode q=SELECT mean("tWater")*9/5+32 as "tWater" from "compost" where "deviceid" = 'device-02-6a' AND time > now() - 36d GROUP BY time(1ms) fill(none) tz('America/New_York')
-	Enter host password for user 'ezra':
-  	% Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
-	                                 Dload  Upload   Total   Spent    Left  Speed
-	100 29977    0 29977    0     0  92236      0 --:--:-- --:--:-- --:--:-- 93096
+\
+PC
+```
+$ python3 json-to-csv-qbg.py rawdata-1a.json csvfile-1a.csv
+```
 
-To get water temperature, pressure and battery data for sensor probe 5a for the last 7 days:
+Mac
+```
+$ python json-to-csv-qbg.py rawdata-1a.json csvfile-1a.csv
+```
 
-	$ get-influxdb-data-qbg.sh -q 'mean("tWater")*9/5+32 as "tWater",mean("p") as "p",mean("vBat") as "vBat"' -r 5a -v -t7 > data.json
-	get-influxdb-data-qbg.sh: curl -G --basic --user ezra https://analytics.weradiate.com/influxdb:8086/query?pretty=true --data-urlencode db=thermosense --data-urlencode q=SELECT mean("tWater")*9/5+32 as "tWater",mean("p") as "p",mean("vBat") as "vBat" from "compost" where "deviceid" = 'device-02-6e' AND time > now() - 7d GROUP BY time(1ms) fill(none) tz('America/New_York')
-	Enter host password for user 'ezra':
-	  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
-	                                 Dload  Upload   Total   Spent    Left  Speed
-	100  6509    0  6509    0     0  47166      0 --:--:-- --:--:-- --:--:-- 47510
-
-Note: 'sh get-influxdb-data-qbg.sh ....' for MAC bash
-
-### python command to convert json file to csv file
-    $ python3 json-to-csv-qbg.py data.json data.csv
-
-Note: You can just use python instead of python3 as well
+For this example, this will create `csvfile-1a.csv` file in the same directory.
